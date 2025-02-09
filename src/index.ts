@@ -639,7 +639,7 @@ export default {
 
       if (data.activePoll === null) {
         return respond(
-          `<h3>No active poll at the moment</h3>
+          `<h3>Det finns ingen aktiv poll just nu.</h3>
           ${getNextButton()}`
         );
       }
