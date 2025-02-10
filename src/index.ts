@@ -165,33 +165,51 @@ function respond(text: string) {
 
 
             .scale_section {
-              background-color: #efefef;
+              background-color: #4DADE3;
               color: white;
               padding: 0px 0px;
               line-height: 50px;
               border: none;
               margin: 0px;
               width: 100%;
-              outline: 1px solid #555555;
+              position: relative;
+              z-index: 10;
+            }
+            .scale_section div {
+              position: absolute;
+              bottom: 0px;
+              left: 0px;
+              background-color: rgb(221, 85, 16);
+              width: 100%;
+              transform: translateY(-100%);
             }
             .scale {
-              background-color:rgb(154, 218, 255);
-              // border-right: 1px solid #888888;
+              z-index: 11;
+              border-right: 5px solid rgb(1, 57, 97);
               box-sizing: border-box;
               padding: 0px 0px;
-              line-height: 50px;
+              line-height: 180px;
               text-align: end;
               color: black;
               position: absolute;
-              top: 0px;
+              top: -30px;
               left: 0px;
               font-size: 20px;
+            }
+            .scale span {
+              display: block;
+              position: absolute;
+              bottom: 0px;
+              right: 5px;
+              line-height: 20px;
             }
             .scale_div {
               display: grid;
               grid-template-columns: min-content 1fr min-content;
               align-items: center;
               position: relative;
+              margin-bottom: 40px;
+              margin-top: 50px;
             }
             .scale_number {
               font-size: 20px;
@@ -204,9 +222,6 @@ function respond(text: string) {
               align-items: center;
               position: relative;
               width: 100%;
-              border-radius: 40px;
-              overflow: hidden;
-              border: 1px solid #555555;
             }
             .option {
               font-size: 25px;
@@ -683,21 +698,63 @@ export default {
                 ).toFixed(1);
                 const procentage = (parseFloat(averageRank) / 6) * 100 || 0;
 
+                const votesFor1 = data.rankResults.filter(
+                  (r) => r.optionId === id && r.rank === 1
+                ).length;
+                const votesFor2 = data.rankResults.filter(
+                  (r) => r.optionId === id && r.rank === 2
+                ).length;
+                const votesFor3 = data.rankResults.filter(
+                  (r) => r.optionId === id && r.rank === 3
+                ).length;
+                const votesFor4 = data.rankResults.filter(
+                  (r) => r.optionId === id && r.rank === 4
+                ).length;
+                const votesFor5 = data.rankResults.filter(
+                  (r) => r.optionId === id && r.rank === 5
+                ).length;
+                const votesFor6 = data.rankResults.filter(
+                  (r) => r.optionId === id && r.rank === 6
+                ).length;
+                const maxVotes = Math.max(
+                  votesFor1,
+                  votesFor2,
+                  votesFor3,
+                  votesFor4,
+                  votesFor5,
+                  votesFor6
+                );
+
                 return `<div class="box" style="max-width: 1200px; margin: 0px auto 10px auto;">
                   <h2 class="option">${optionText}</h2>
-                  <span style="display:block; margin-bottom: 15px">Genomsnittet av ${totalVotes} röst(er).</span>
+                  <span style="display:block; margin-bottom: 15px">${totalVotes} röst${
+                  totalVotes !== 1 ? "er" : ""
+                }.</span>
                   <div class="scale_div">
                     <span class="scale_number">1</span>
                     <div class="scale_range">
-                      <div class="scale_section">&nbsp;</div>
-                      <div class="scale_section">&nbsp;</div>
-                      <div class="scale_section">&nbsp;</div>
-                      <div class="scale_section">&nbsp;</div>
-                      <div class="scale_section">&nbsp;</div>
-                      <div class="scale_section">&nbsp;</div>
-                      <span class="scale" style="width: ${procentage}%;"><span style="margin: 0px 10px;">${
-                  averageRank !== "NaN" ? averageRank : ""
-                }</span></span>
+
+                      ${Array.from({ length: 6 })
+                        .map((_, index) => {
+                          const votes = data.rankResults.filter(
+                            (r) => r.optionId === id && r.rank === index + 1
+                          ).length;
+                          const procentage = Math.max(
+                            (votes / maxVotes) * 100,
+                            5
+                          );
+                          return `<div class="scale_section" style="line-height: ${
+                            procentage ? procentage : 5
+                          }px">&nbsp;</div>`;
+                        })
+                        .join("")}
+                      ${
+                        averageRank !== "NaN"
+                          ? `<span class="scale" style="width: ${
+                              procentage - 100 / 6 / 2
+                            }%;">&nbsp;<span>Genomsnitt ${averageRank}</span></span>`
+                          : ""
+                      }
                     </div>
                     <span class="scale_number">6</span>
                   </div>
