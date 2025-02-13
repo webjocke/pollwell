@@ -1,0 +1,229 @@
+{{{snippets.header}}}
+<div id="polls">
+  {{#polls}} {{#isWordCloud}}
+  <div class="admin_poll admin_word_cloud {{activeClass}}">
+    <p class="poll_type">
+      Typ: WordCloud (användare får lägga till fritext svar)
+    </p>
+    {{#isActive}}
+    <p
+      class="active_poll set_active"
+      onClick="
+                fetch(window.location.href, {
+                method:'POST',
+                body: JSON.stringify({
+                    action:'setActivePoll',
+                    pollId: null
+                })
+                }).then(() => location.reload());
+            "
+    >
+      Aktiv poll ✓
+    </p>
+    {{/isActive}} {{#isInActive}}
+    <button
+      class="next_button set_active"
+      style="display: block; margin: auto"
+      onClick="
+                  fetch(window.location.href, {
+                    method:'POST',
+                    body: JSON.stringify({
+                      action:'setActivePoll',
+                      pollId:'{{id}}'
+                    })
+                  }).then(() => location.reload());
+                "
+    >
+      Sätt som aktiv
+    </button>
+    {{/isInActive}}
+    <button
+      class="next_button red remove_poll"
+      onClick="
+              fetch(window.location.href, {
+                method:'POST',
+                body: JSON.stringify({
+                  action:'removePoll',
+                  pollId:'{{id}}'
+                })
+              }).then(() => location.reload())
+            "
+    >
+      Ta bort
+    </button>
+    <div>
+      <input
+        class="admin_poll_title_input"
+        value="{{poll.question}}"
+        placeholder="Poll fråga"
+        onChange="
+                fetch(window.location.href, {
+                    method:'POST',
+                    body: JSON.stringify({
+                    action:'writePoll',
+                    pollId:'{{id}}',
+                    newPoll:{
+                        type:'wordCloud',
+                        question:this.value
+                    }
+                    })
+                });
+                "
+      />
+    </div>
+  </div>
+  {{/isWordCloud}} {{#isRank}}
+  <div class="admin_poll admin_rank {{activeClass}}">
+    <p class="poll_type">Typ: Rank (ranka 1-6)</p>
+    {{#isActive}}
+    <p
+      class="active_poll set_active"
+      onClick="
+                  fetch(window.location.href, {
+                    method:'POST',
+                    body: JSON.stringify({
+                      action:'setActivePoll',
+                      pollId: null
+                    })
+                  }).then(() => location.reload());
+                "
+    >
+      Aktiv poll ✓
+    </p>
+    {{/isActive}} {{#isInActive}}<button
+      class="next_button set_active"
+      style="display: block; margin: auto"
+      onClick="
+                  fetch(window.location.href, {
+                    method:'POST',
+                    body: JSON.stringify({
+                      action:'setActivePoll',
+                      pollId:'{{id}}'
+                    })
+                  }).then(() => location.reload());
+                "
+    >
+      Sätt som aktiv</button
+    >{{/isInActive}}
+    <button
+      class="next_button red remove_poll"
+      onClick="
+              fetch(window.location.href, {
+                method:'POST',
+                body: JSON.stringify({
+                  action:'removePoll',
+                  pollId:'{{id}}'
+                })
+              }).then(() => location.reload())
+            "
+    >
+      Ta bort
+    </button>
+    <div>
+      <input
+        id="{{id}}"
+        class="admin_poll_title_input"
+        value="{{poll.title}}"
+        placeholder="Poll titel (valfritt)"
+        onChange="
+              fetch(window.location.href, {
+                method:'POST',
+                body: JSON.stringify({
+                  action:'writeRankTitle',
+                  pollId:'{{id}}',
+                  title:this.value
+                })
+              });
+            "
+      />
+    </div>
+    <p>Uttalanden to rösta på:</p>
+    {{#options}}
+    <div>
+      <input
+        id="{{optionId}}"
+        class=".option-{{id}}"
+        value="{{optionText}}"
+        onChange="
+                  fetch(window.location.href, {
+                    method:'POST',
+                    body: JSON.stringify({
+                      action:'writeOptionText',
+                      pollId:'{{id}}',
+                      optionId:'{{optionId}}',
+                      optionText:this.value
+                    })
+                  });
+                "
+        placeholder="T.ex. Jag gillar dagens mat..."
+      /><button
+        onClick="
+                  fetch(window.location.href, {
+                    method:'POST',
+                    body: JSON.stringify({
+                      action:'removeOption',
+                      pollId:'{{id}}',
+                      optionId:'{{optionId}}'
+                    })
+                  }).then(() => location.reload())
+                "
+      >
+        X
+      </button>
+    </div>
+    {{/options}}
+    <button
+      class="next_button"
+      onClick="
+              fetch(window.location.href, {
+                method:'POST',
+                body: JSON.stringify({
+                  action:'addOption',
+                  pollId:'{{id}}',
+                })
+              }).then(() => location.reload())
+            "
+    >
+      Lägg till alternativ +
+    </button>
+  </div>
+  {{/isRank}} {{/polls}}
+</div>
+<button
+  class="next_button"
+  onClick="
+    fetch(window.location.href, {
+      method:'POST',
+      body: JSON.stringify({
+        action:'writePoll',
+        pollId:Date.now().toString(),
+        newPoll:{
+          type:'wordCloud',
+          question:''
+        }
+      })
+    }).then(() => location.reload());
+  "
+>
+  Lägg till WordCloud poll
+</button>
+<button
+  class="next_button"
+  onClick="
+    fetch(window.location.href, {
+      method:'POST',
+      body: JSON.stringify({
+        action:'writePoll',
+        pollId:Date.now().toString(),
+        newPoll:{
+          type:'rank',
+          title:'',
+          options:{},
+        }
+      })
+    }).then(() => location.reload());
+  "
+>
+  Lägg till Rank poll
+</button>
+{{{snippets.footer}}}

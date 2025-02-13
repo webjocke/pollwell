@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>PollWell</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <script src="/d3.v4.min.js"></script>
+    <script src="/d3.layout.cloud.js"></script>
+    <style>
+      @font-face {
+        font-family: "AkhandSoft-Bold";
+        src: url("/AkhandSoft-Bold.otf") format("opentype");
+      }
+      @font-face {
+        font-family: "Poppins-Regular";
+        src: url("/Poppins-Regular.otf") format("opentype");
+      }
+
+      * {
+        color: rgb(1, 57, 97);
+        font-family: "Poppins-Regular";
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: "AkhandSoft-Bold";
+      }
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      svg {
+        box-sizing: border-box;
+      }
+      h1#pageTitle {
+        position: absolute;
+        top: 70px;
+        width: 100%;
+        left: 0px;
+        text-align: center;
+      }
+      .blue {
+        color: #4dade3;
+      }
+      .dark_blue {
+        color: #003961;
+      }
+      .logo {
+        position: absolute;
+        top: 20px;
+        width: 100%;
+        left: 0px;
+        text-align: center;
+        margin: 0px;
+      }
+
+      .title {
+        font-size: 50px;
+        color: rgb(1, 57, 97);
+        font-family: "AkhandSoft-Bold";
+      }
+      .title span {
+        font-family: "AkhandSoft-Bold";
+      }
+      .smaller {
+        font-size: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <svg></svg>
+    <h1 class="logo title">
+      <span class="dark_blue">Poll</span><span class="blue">Well</span
+      ><span class="dark_blue smaller">.se</span>
+    </h1>
+    <h1 id="pageTitle"></h1>
+
+    <script>
+      const maxFontSize = 70;
+      const minFontSize = 40;
+
+      var e = window;
+      var a = "inner";
+      if (!("innerWidth" in window)) {
+        a = "client";
+        e = document.documentElement || document.body;
+      }
+      const width = e[a + "Width"] - 40;
+      const height = e[a + "Height"] - 40;
+      document.querySelector("svg").setAttribute("width", width);
+      document.querySelector("svg").setAttribute("height", height);
+
+      function getColor(word) {
+        const alreadyHaveColor = localStorage.getItem(word);
+        if (alreadyHaveColor) {
+          return alreadyHaveColor;
+        }
+        const color = "hsl(" + Math.random() * 360 + ",50%,50%)";
+        localStorage.setItem(word, color);
+        return color;
+      }
+
+      const rawData = JSON.parse(`{{{data}}}`);
+
+      document.querySelector("h1#pageTitle").innerText =
+        rawData.polls[rawData.activePoll].question;
+
+      let words = [];
+
+      rawData.wordCloudResults
+        .filter((word) => word.pollId === rawData.activePoll)
+        .forEach((word) => {
+          if (words.find((w) => w.text === word.word)) {
+            words.find((w) => w.text === word.word).size += 1;
+          } else {
+            words.push({ text: word.word, size: 1 });
+          }
+        });
+
+      const scaleNumber = (value, inMin, inMax, outMin, outMax) => {
+        return ((value - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
+      };
+
+      const max = Math.max(...words.map((w) => w.size));
+      const min = Math.min(...words.map((w) => w.size));
+
+      words = words.map((word) => {
+        return {
+          text: word.text,
+          size: scaleNumber(
+            word.size,
+            max === min ? 0 : min,
+            max,
+            minFontSize,
+            maxFontSize
+          ),
+        };
+      });
+
+      d3.layout
+        .cloud()
+        .size([width, height])
+        .words(words)
+        .padding(5)
+        .rotate(() => (Math.random() > 0.5 ? 0 : 0))
+        .fontSize((d) => d.size)
+        .on("end", (words) => {
+          const svg = d3.select("svg");
+          const group = svg.select("g");
+          if (!group.node()) {
+            svg
+              .append("g")
+              .attr(
+                "transform",
+                "translate(" + width / 2 + "," + height / 2 + ")"
+              );
+          }
+
+          const text = svg
+            .select("g")
+            .selectAll("text")
+            .data(words, (d) => d.text);
+
+          text
+            .enter()
+            .append("text")
+            .style("font-size", "1px")
+            .style("font-family", "AkhandSoft-Bold")
+            .style("fill", (i) => {
+              console.log(i);
+              return getColor(i.text);
+            })
+            .attr("text-anchor", "middle")
+            .attr(
+              "transform",
+              (d) =>
+                "translate(" + d.x + "," + d.y + ") rotate(" + d.rotate + ")"
+            )
+            .text((d) => d.text)
+            .transition()
+            .duration(1000)
+            .style("font-size", (d) => d.size + "px");
+        })
+        .start();
+
+      async function checkForUpdate() {
+        const url = new URL(window.location.href);
+        const baseUrl = url.origin + url.pathname + "?data";
+        const response = await fetch(baseUrl);
+        const newContent = await response.json();
+
+        if (
+          newContent.wordCloudResults.filter(
+            (w) => w.pollId === newContent.activePoll
+          ).length !==
+            rawData.wordCloudResults.filter(
+              (w) => w.pollId === rawData.activePoll
+            ).length ||
+          newContent.activePoll !== rawData.activePoll
+        ) {
+          location.reload();
+        }
+        setTimeout(checkForUpdate, 5000);
+      }
+      checkForUpdate();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,57 @@
+{{{snippets.header}}}
+<h1 style="margin-bottom: 35px">{{poll.title}}</h1>
+{{#options}}
+<div class="box" style="max-width: 1200px; margin: 0px auto 10px auto">
+  <h2 class="option">{{optionText}}</h2>
+  <span style="display: block; margin-bottom: 15px"
+    >{{totalVotes}} röst{{totalVotesSuffix}}.</span
+  >
+  <div class="scale_div">
+    <span class="scale_number">1</span>
+    <div class="scale_range">
+      {{#votes}}
+      <div class="scale_section" style="line-height: {{procentage}}px">
+        &nbsp;
+      </div>
+      {{/votes}} {{#showAverage}}
+      <span class="scale" style="width: {{averageProcentageSize}}%"
+        >&nbsp;<span>Genomsnitt {{averageRank}}</span></span
+      >
+      {{/showAverage}}
+    </div>
+    <span class="scale_number">6</span>
+  </div>
+</div>
+{{/options}}
+<script>
+  async function checkForUpdate() {
+      const url = new URL(window.location.href);
+      const baseUrl = url.origin + url.pathname+"?data";
+      const response = await fetch(baseUrl);
+      const newContent = await response.json();
+
+      const activePollId = "{{activePoll}}";
+      const resultsForThisOptionCount = {{totalResponsesForRankPoll}};
+
+      const poll = newContent.polls[newContent.activePoll];
+      if (!poll || poll.type !== "rank") {
+        console.log("reloading");
+        location.reload();
+        return
+      }
+      const optionIds = Object.keys(poll.options);
+      const newOptionsCount = optionIds.length;
+      const totalResponsesForRankPoll = newContent.rankResults.filter((r) =>
+        optionIds.includes(r.optionId)
+      ).length;
+      const allQuestionsCompined = Object.values(poll.options).join('');
+
+      if (totalResponsesForRankPoll !== resultsForThisOptionCount || newContent.activePoll !== activePollId || newOptionsCount !== {{optionIdsLength}} || allQuestionsCompined !== "{{allCombinedQuestions}}" || poll.title !== "{{poll.title}}") {
+          console.log("reloading");
+          location.reload();
+      }
+      setTimeout(checkForUpdate, 5000);
+  }
+  checkForUpdate();
+</script>
+{{{snippets.footer}}}
