@@ -1,0 +1,38 @@
+{{{snippets.header}}}
+<div class="box" style="padding: 30px 30px">
+  <h3 style="margin-bottom: 25px">{{poll.question}}</h3>
+  <div
+    style="width: 100%; display: grid; grid-template-columns: 1fr; gap: 10px"
+  >
+    <input
+      class="freetext_input"
+      onKeyDown="if (event.key === 'Enter') {document.querySelector('button').click()}"
+      placeholder="Svar"
+      autofocus
+    />
+    <button
+      style="font-size: 16px"
+      class="blue_button border_radius"
+      onClick="
+        console.log(document.querySelector('input').value, window.location.href);
+        if (document.querySelector('input').value.trim() !== '') {
+        // replace everything that not a-z, A-Z, 0-9 with empty string. Space is allowed. äåö is also allowed.
+        fetch(window.location.href, {
+          method:'POST',
+          body: JSON.stringify({
+            action:'voteWordCloud',
+            pollId:'{{activePoll}}',
+            word:document.querySelector('input').value.trim().replaceAll(/[^a-zA-Z0-9åäöÅÄÖ ]/g, '')
+          })
+        }).then(() => {
+          document.querySelector('input').value = '';
+          document.querySelector('input').focus();
+        });
+        }
+      "
+    >
+      Skicka
+    </button>
+  </div>
+</div>
+{{{snippets.nextButton}}} {{{snippets.footer}}}

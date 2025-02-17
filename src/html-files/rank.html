@@ -1,0 +1,39 @@
+{{{snippets.header}}}
+<h2>{{poll.title}}</h2>
+{{#options}}
+<div class="box">
+    <h3>{{optionText}}</h3>
+    <p class="thank_you" id="thankyou{{id}}">Tack för din röst på </h3>
+    <div id="option{{id}}" class="rank_buttons">
+        <script>
+            if (localStorage.getItem('{{id}}') !== null) {
+                document.querySelector('#option{{id}}').style.display = 'none'
+                document.querySelector('#thankyou{{id}}').style.display = 'block'
+                document.querySelector('#thankyou{{id}}').innerText = 'Tack för din röst på '+localStorage.getItem('{{id}}')+"!";
+            }
+            const click{{id}} = (i) => {
+                fetch(window.location.href, {
+                    method:'POST',
+                    body: JSON.stringify({
+                    action:'voteRank',
+                    optionId:'{{id}}',
+                    rank:i
+                    })
+                }).then(() => {
+                    localStorage.setItem('{{id}}', i);
+                    document.querySelector('#option{{id}}').style.display = 'none'
+                    document.querySelector('#thankyou{{id}}').style.display = 'block'
+                    document.querySelector('#thankyou{{id}}').innerText = 'Tack för din röst på '+i+"!";
+                });
+            }
+        </script>
+        <span>Dåligt</span>
+        {{#buttons}}
+        <button class="blue_button" onClick="click{{id}}('{{.}}')">{{.}}</button>
+        {{/buttons}}
+        <span>Bra</span>
+    </div>
+</div>
+{{/options}}
+{{{snippets.nextButton}}} {{{snippets.footer}}}
+                
